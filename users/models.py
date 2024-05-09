@@ -1,3 +1,43 @@
+import uuid
 from django.db import models
+from django.contrib.auth.models import AbstractUser
+from django.utils import timezone
+from rest_framework_simplejwt.tokens import RefreshToken
 
-# Create your models here.
+STUDENT, TEACHER, SEO, ADMIN, MANAGER = ('student', 'teacher', 'seo', 'admin', 'manager')
+
+
+class User(AbstractUser):
+    USER_STATUS = (
+        (ADMIN, ADMIN),
+        (MANAGER, MANAGER),
+        (SEO, SEO),
+        (TEACHER, TEACHER),
+        (STUDENT, STUDENT)
+    )
+    id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid.uuid4)
+    phone_number = models.CharField(max_length=14, null=True, blank=True)
+    status = models.CharField(max_length=50, choices=USER_STATUS, default=STUDENT)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    @property
+    def full_name(self):
+        return f'{self.first_name} {self.last_name}'
+
+    def token(self):
+        refresh = RefreshToken.for_user()
+        return {
+            'refresh_token': str(refresh),
+            'access_token': str(refresh.access_token),
+        }
+
+    def check_hash_password(self):
+        if not self.password.startswith('pbkdf2_sha256'):
+            return self.set_password(self.password)
+
+    def __str__(self):
+        return self.username
+
+    def save(self, *args, **kwargs):
+        self.check_password_hash()
+        super(User, self).save(*args, **kwargs)
