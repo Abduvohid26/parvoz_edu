@@ -1,4 +1,5 @@
 import uuid
+import random
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
@@ -20,12 +21,19 @@ class User(AbstractUser):
     status = models.CharField(max_length=50, choices=USER_STATUS, default=STUDENT)
     created_at = models.DateTimeField(default=timezone.now)
 
+    def check_username(self):
+        if not self.username:
+            temp_username = f'parvoz-{uuid.uuid4().__str__().split("-")[-1]}'
+            while User.objects.filter(username=temp_username):
+                temp_username = f"{temp_username}{random.randint(0, 9)}"
+            self.username = temp_username
+
     @property
     def full_name(self):
         return f'{self.first_name} {self.last_name}'
 
     def token(self):
-        refresh = RefreshToken.for_user()
+        refresh = RefreshToken.for_user(self)
         return {
             'refresh_token': str(refresh),
             'access_token': str(refresh.access_token),
@@ -39,5 +47,6 @@ class User(AbstractUser):
         return self.username
 
     def save(self, *args, **kwargs):
-        self.check_password_hash()
+        self.check_hash_password()
+        self.check_username()
         super(User, self).save(*args, **kwargs)
