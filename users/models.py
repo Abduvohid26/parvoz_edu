@@ -50,3 +50,38 @@ class User(AbstractUser):
         self.check_hash_password()
         self.check_username()
         super(User, self).save(*args, **kwargs)
+
+
+class Teachers(models.Model):
+    id = models.UUIDField(editable=False, unique=True, primary_key=True, default=uuid.uuid4)
+    teacher = models.OneToOneField(User, on_delete=models.CASCADE, related_name='teachers')
+    group_qty = models.IntegerField()
+
+
+class Courses(models.Model):
+    id = models.UUIDField(editable=False, unique=True, primary_key=True, default=uuid.uuid4)
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+
+
+class Rooms(models.Model):
+    id = models.UUIDField(editable=False, unique=True, primary_key=True, default=uuid.uuid4)
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+
+
+class Groups(models.Model):
+    id = models.UUIDField(editable=False, unique=True, primary_key=True, default=uuid.uuid4)
+    name = models.CharField(max_length=255)
+    course = models.CharField(max_length=255)
+    teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='teacher_groups')
+    days = models.DateTimeField()
+    room = models.ForeignKey(Rooms, on_delete=models.CASCADE)
+    student_qty = models.IntegerField()
+
+    def __str__(self):
+        return self.name
