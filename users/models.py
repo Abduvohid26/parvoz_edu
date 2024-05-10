@@ -80,7 +80,7 @@ class Groups(models.Model):
     course = models.CharField(max_length=255)
     teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='teacher_groups')
     days = models.DateTimeField()
-    room = models.ForeignKey(Rooms, on_delete=models.CASCADE)
+    room = models.ForeignKey(Rooms, on_delete=models.CASCADE, related_name='room_groups')
     student_qty = models.IntegerField()
 
     def __str__(self):
